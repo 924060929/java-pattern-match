@@ -3,7 +3,8 @@
 - 功能：模仿Scala实现模式匹配，能够简单匹配多层代数数据类型(GADT)
 - 依赖环境: `jdk8` (`lib/tools.jar`)
 - 编译: `mvn clean package`
-- 主类: `test.Main`，含有几个例子，可运行
+- 主类: `test.Main`，含有几个例子，可使用IDE运行
+- 命令行运行: `java -jar target/pattern-match-*.jar`
 - 原理: 通过`jsr269`功能定义注解处理器(`test.desc.DescribableNodeProcessor`)，在编译之前使用模板批量生成描述类(`XxxNodeDesc`)，能减少维护大量描述类的成本
 
 
