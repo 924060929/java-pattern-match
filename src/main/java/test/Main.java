@@ -47,7 +47,7 @@ public class Main {
   public static void test1(PlanNode node) {
     System.out.println("test1");
     NodePatternRegistry patterns = new NodePatternRegistry();
-    patterns.add(JoinNode(JoinNode(any(), any()).type(INNER), any()).type(INNER).then(ctx -> {
+    patterns.add(JoinNode(INNER, JoinNode(INNER, any(), any()), any()).then(ctx -> {
       // auto type inference
       JoinNode left = ctx.root.left;
       PlanNode right = ctx.root.right;
@@ -64,7 +64,7 @@ public class Main {
   public static void test2(PlanNode node) {
     System.out.println("test2");
     NodePatternRegistry patterns = new NodePatternRegistry();
-    patterns.add(JoinNode(JoinNode(named("a"), named("b")).type(INNER), named("c")).type(INNER).then(ctx -> {
+    patterns.add(JoinNode(INNER, JoinNode(named("a"), named("b")), named("c")).then(ctx -> {
       // no type inference
       return new JoinNode(INNER, ctx.get("a"), new JoinNode(INNER, ctx.get("b"), ctx.get("c")));
     }));
@@ -79,10 +79,10 @@ public class Main {
   public static void test3(PlanNode node) {
     System.out.println("test3");
     NodePatternRegistry patterns = new NodePatternRegistry();
-    JoinNodeDesc<ScanNode, ScanNode> desc1 = JoinNode(ScanNode(), ScanNode());
+    JoinNodeDesc<ScanNode, ScanNode> desc1 = JoinNode(INNER, ScanNode(), ScanNode());
     ScanNodeDesc desc2 = _ScanNode("a");
 
-    patterns.add(JoinNode(desc1.type(INNER), desc2).type(INNER).then(ctx -> {
+    patterns.add(JoinNode(INNER, desc1, desc2).then(ctx -> {
       // auto type inference
       JoinNode<ScanNode, ScanNode> left = ctx.get(desc1);
       ScanNode right = ctx.get(desc2);
