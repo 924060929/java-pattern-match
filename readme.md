@@ -72,8 +72,8 @@ patterns.add(JoinNode(INNER, desc1, desc2).then(ctx -> {
   // auto type inference
   JoinNode<ScanNode, ScanNode> left = ctx.get(desc1);
   ScanNode right = ctx.get(desc2);
-  // cast to ScanNode
-  ScanNode right2 = ctx.get("a");
+  // PlanNode cast to ScanNode
+  ScanNode right2 = (ScanNode) ctx.get("a");
   assert right == right2;
   return new JoinNode<>(INNER, left.left, new JoinNode(INNER, left.right, right));
 }));

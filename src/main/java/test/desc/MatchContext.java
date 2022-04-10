@@ -15,8 +15,8 @@ public class MatchContext<T extends PlanNode> {
     this.root = root;
   }
 
-  public <T extends PlanNode> T get(String name) {
-    return (T) namedNodes.get(name);
+  public PlanNode get(String name) {
+    return namedNodes.get(name);
   }
 
   public <T extends PlanNode> T get(NodePattern<T> pattern) {
