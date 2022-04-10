@@ -1,0 +1,46 @@
+package test.desc;
+
+import test.desc.*;
+import test.node.PlanNode;
+
+public interface NodePatternHelper {
+  public static final NodePattern<PlanNode> _ = null;
+
+  public static <T> T any() {
+    return null;
+  }
+
+  public static NamedPattern named(String named) {
+    return new NamedPattern(named);
+  }
+#foreach($node in $nodes)
+
+  public static ${node.classGenericType} ${node.nodeClassName}Desc${node.descGenericType} ${node.nodeClassName}() {
+    return new ${node.nodeClassName}Desc();
+  }
+
+  public static ${node.classGenericType} ${node.nodeClassName}Desc${node.descGenericType} _${node.nodeClassName}(String named) {
+    return new ${node.nodeClassName}Desc().named(named);
+  }
+#if(${node.children.size()} > 0 && ${node.children.size()} < ${node.vars.size()})
+
+  public static ${node.classGenericType} ${node.nodeClassName}Desc${node.descGenericType} ${node.nodeClassName}(${node.childrenBuilderParamTypes}) {
+    return new ${node.nodeClassName}Desc(${node.childrenBuilderParams});
+  }
+
+  public static ${node.classGenericType} ${node.nodeClassName}Desc${node.descGenericType} _${node.nodeClassName}(String named, ${node.childrenBuilderParamTypes}) {
+    return new ${node.nodeClassName}Desc(${node.childrenBuilderParams}).named(named);
+  }
+#end
+#if(${node.vars.size()} > 0)
+
+  public static ${node.classGenericType} ${node.nodeClassName}Desc${node.descGenericType} ${node.nodeClassName}(${node.varsBuilderParamTypes}) {
+    return new ${node.nodeClassName}Desc(${node.varsBuilderParams});
+  }
+
+  public static ${node.classGenericType} ${node.nodeClassName}Desc${node.descGenericType} _${node.nodeClassName}(String named, ${node.varsBuilderParamTypes}) {
+    return new ${node.nodeClassName}Desc(${node.varsBuilderParams}).named(named);
+  }
+#end
+#end
+}

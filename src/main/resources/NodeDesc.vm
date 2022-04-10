@@ -1,0 +1,93 @@
+package test.desc;
+
+import java.util.Optional;
+import test.node.*;
+
+public class ${nodeClassName}Desc${classGenericType} implements NodePattern<${nodeClassName}${descGenericType}> {
+  private Optional<String> _named = Optional.empty();
+#foreach($var in $vars)
+  private Optional<${var.type}> ${var.name} = Optional.empty();
+#end
+
+  public ${nodeClassName}Desc() {}
+
+#if($children.size() > 0 && $children.size() < $vars.size())
+  // children constuctor
+  public ${nodeClassName}Desc(${childrenConstructorParams}) {
+#foreach($child in $children)
+    this.${child.name} = Optional.ofNullable(${child.name});
+#end
+  }
+
+#end
+#if($vars.size() > 0)
+  // vars constructor
+  public ${nodeClassName}Desc(${varsConstructorParams}) {
+#foreach($var in $vars)
+    this.${var.name} = Optional.ofNullable(${var.name});
+#end
+  }
+
+#end
+  public ${nodeClassName}Desc${descGenericType} named(String named) {
+    this._named = (Optional) Optional.ofNullable(named);
+    return (${nodeClassName}Desc) this;
+  }
+
+  @Override
+  public boolean match(PlanNode planNode) {
+    if (!(planNode instanceof ${nodeClassName})) {
+      return false;
+    }
+
+#if($vars.size() > 0)
+    ${nodeClassName} node = (${nodeClassName}) planNode;
+#end
+#foreach($var in $vars)
+#if($var.isChild)
+    if (${var.name}.isPresent() && !${var.name}.get().match(node.${var.name})) {
+      return false;
+    }
+#else
+    if (${var.name}.isPresent() && !${var.name}.get().equals(node.${var.name})) {
+      return false;
+    }
+#end
+#end
+    return true;
+  }
+
+  @Override
+  public void buildContext(MatchContext context, PlanNode planNode) {
+    context.set(this, planNode);
+    if (_named.isPresent()) {
+      context.set(_named.get(), planNode);
+    }
+#if($children.size() > 0)
+    ${nodeClassName} node = (${nodeClassName}) planNode;
+#end
+#foreach($child in $children)
+    if (${child.name}.isPresent()) {
+      ${child.name}.get().buildContext(context, node.${child.name});
+    }
+#end
+  }
+
+  public <R> NodePatternAndCallback<${nodeClassName}${descGenericType}, R> then(MatchCallback1<MatchContext<${nodeClassName}${descGenericType}>, R> callback) {
+    return new NodePatternAndCallback(this, callback);
+  }
+#foreach($var in $vars)
+
+  #if($var.isChild)
+  public ${nodeClassName}Desc${descGenericType} ${var.name}(${var.type} ${var.name}) {
+    this.${var.name} = (Optional) Optional.ofNullable(${var.name});
+    return (${nodeClassName}Desc) this;
+  }
+  #else
+  public ${nodeClassName}Desc${descGenericType} ${var.name}(${var.type} ${var.name}) {
+    this.${var.name} = (Optional) Optional.ofNullable(${var.name});
+    return (${nodeClassName}Desc) this;
+  }
+  #end
+#end
+}
