@@ -5,6 +5,7 @@ import test.node.PlanNode;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class MatchContext<T extends PlanNode> {
   public final T root;
@@ -17,6 +18,18 @@ public class MatchContext<T extends PlanNode> {
 
   public PlanNode get(String name) {
     return namedNodes.get(name);
+  }
+
+  public Void get(NoneNodePattern pattern) {
+    return null;
+  }
+
+  public PlanNode get(AnyNodePattern pattern) {
+    return patternNodes.get(pattern);
+  }
+
+  public <T extends PlanNode> Optional<T> get(OptionNodePattern<T> pattern) {
+    return Optional.ofNullable((T) patternNodes.get(pattern));
   }
 
   public <T extends PlanNode> T get(NodePattern<T> pattern) {

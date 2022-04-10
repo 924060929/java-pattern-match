@@ -4,13 +4,35 @@ import test.desc.*;
 import test.node.PlanNode;
 
 public interface NodePatternHelper {
-  public static final NodePattern<PlanNode> _ = null;
-
-  public static <T> T any() {
-    return null;
+  public static <T extends PlanNode> NoneNodePattern<T> none() {
+    return new NoneNodePattern();
   }
 
-  public static NamedPattern named(String named) {
+  public static <T extends PlanNode> AnyNodePattern<T> any() {
+    return new AnyNodePattern();
+  }
+
+  public static <T extends PlanNode> AnyNodePattern<T> _any(String named) {
+    return new AnyNodePattern().named(named);
+  }
+
+  public static <T extends PlanNode> OptionNodePattern<T> option() {
+    return new OptionNodePattern();
+  }
+
+  public static <T extends PlanNode> OptionNodePattern<T> _option(String named) {
+    return new OptionNodePattern().named(named);
+  }
+
+  public static <T extends PlanNode> OptionNodePattern<T> option(NodePattern<T> pattern) {
+    return new OptionNodePattern().pattern(pattern);
+  }
+
+  public static <T extends PlanNode> OptionNodePattern<T> _option(String named, NodePattern<T> pattern) {
+    return new OptionNodePattern().named(named).pattern(pattern);
+  }
+
+  public static <T extends PlanNode> NamedPattern<T> named(String named) {
     return new NamedPattern(named);
   }
 #foreach($node in $nodes)

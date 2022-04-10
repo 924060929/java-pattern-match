@@ -64,9 +64,10 @@ public class Main {
   public static void test2(PlanNode node) {
     System.out.println("test2");
     NodePatternRegistry patterns = new NodePatternRegistry();
-    patterns.add(JoinNode(INNER, JoinNode(named("a"), named("b")), named("c")).then(ctx -> {
-      // no type inference
-      return new JoinNode(INNER, ctx.get("a"), new JoinNode(INNER, ctx.get("b"), ctx.get("c")));
+    patterns.add(JoinNode(INNER, JoinNode(_ScanNode("a"), named("b")), named("c")).then(ctx -> {
+      // get ScanNode by "a", return PlanNode, even "a" is a ScanNode
+      PlanNode a = ctx.get("a");
+      return new JoinNode(INNER, a, new JoinNode(INNER, ctx.get("b"), ctx.get("c")));
     }));
 
     System.out.println("origin tree: " + node);
@@ -86,7 +87,7 @@ public class Main {
       // auto type inference
       JoinNode<ScanNode, ScanNode> left = ctx.get(desc1);
       ScanNode right = ctx.get(desc2);
-      // PlanNode cast to ScanNode
+      // May be unsafe operation: cast PlanNode to ScanNode
       ScanNode right2 = (ScanNode) ctx.get("a");
       assert right == right2;
       return new JoinNode<>(INNER, left.left, new JoinNode(INNER, left.right, right));

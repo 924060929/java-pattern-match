@@ -1,10 +1,12 @@
 package test.desc;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 import test.node.*;
 
 public class ${nodeClassName}Desc${classGenericType} implements NodePattern<${nodeClassName}${descGenericType}> {
   private Optional<String> _named = Optional.empty();
+  private Optional<Predicate<$nodeClassName$descGenericType>> _predicate = Optional.empty();
 #foreach($var in $vars)
   private Optional<${var.type}> ${var.name} = Optional.empty();
 #end
@@ -34,6 +36,11 @@ public class ${nodeClassName}Desc${classGenericType} implements NodePattern<${no
     return (${nodeClassName}Desc) this;
   }
 
+  public ${nodeClassName}Desc${descGenericType} when(Predicate<${nodeClassName}${descGenericType}> predicate) {
+    this._predicate = (Optional) Optional.ofNullable(predicate);
+    return (${nodeClassName}Desc) this;
+  }
+
   @Override
   public boolean match(PlanNode planNode) {
     if (!(planNode instanceof ${nodeClassName})) {
@@ -53,6 +60,15 @@ public class ${nodeClassName}Desc${classGenericType} implements NodePattern<${no
       return false;
     }
 #end
+#end
+#if($vars.size() > 0)
+    if (_predicate.isPresent() && !_predicate.get().test(node)) {
+      return false;
+    }
+#else
+    if (_predicate.isPresent() && !_predicate.get().test((${nodeClassName}) planNode)) {
+      return false;
+    }
 #end
     return true;
   }

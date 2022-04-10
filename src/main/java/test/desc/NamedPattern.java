@@ -2,7 +2,7 @@ package test.desc;
 
 import test.node.PlanNode;
 
-public class NamedPattern implements NodePattern<PlanNode> {
+public class NamedPattern<T extends PlanNode> implements NodePattern<T> {
   public String name;
 
   public NamedPattern(String name) {
@@ -20,7 +20,7 @@ public class NamedPattern implements NodePattern<PlanNode> {
   }
 
   @Override
-  public NamedPattern named(String name) {
+  public NamedPattern<T> named(String name) {
     this.name = name;
     return this;
   }

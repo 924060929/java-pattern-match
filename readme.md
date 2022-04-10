@@ -43,38 +43,67 @@ result tree: NumNode(value=12)
 ### 2. 通过上下文根节点获取匹配的子节点，能自动做类型推导
 inner join 左结合转右结合：
 ```java
-NodePatternRegistry patterns = new NodePatternRegistry();
-patterns.add(JoinNode(INNER, JoinNode(INNER, any(), any()), any()).then(ctx -> {
+JoinNode(INNER, JoinNode(INNER, any(), any()), any()).then(ctx -> {
   // auto type inference
   JoinNode left = ctx.root.left;
   PlanNode right = ctx.root.right;
   return new JoinNode(INNER, left.left, new JoinNode(INNER, left.right, right));
-}));
+});
 ```
 
-### 3. 通过别名访问匹配的子节点，不能做类型推导，需要强转
+### 3. 通过别名访问匹配的子节点，不能做类型推导
 inner join 左结合转右结合：
 ```java
-NodePatternRegistry patterns = new NodePatternRegistry();
-patterns.add(JoinNode(INNER, JoinNode(named("a"), named("b")), named("c")).then(ctx -> {
-  // no type inference
-  return new JoinNode(INNER, ctx.get("a"), new JoinNode(INNER, ctx.get("b"), ctx.get("c")));
-}));
+JoinNode(INNER, JoinNode(_ScanNode("a"), named("b")), named("c")).then(ctx -> {
+  // get ScanNode by "a", return PlanNode, even "a" is a ScanNode
+  PlanNode a = ctx.get("a");
+  return new JoinNode(INNER, a, new JoinNode(INNER, ctx.get("b"), ctx.get("c")));
+});
 ```
 
 ### 4. 通过描述节点访问匹配的子节点，能自动做类型推导
 inner join 左结合转右结合：
 ```java
-NodePatternRegistry patterns = new NodePatternRegistry();
 JoinNodeDesc<ScanNode, ScanNode> desc1 = JoinNode(INNER, ScanNode(), ScanNode());
 ScanNodeDesc desc2 = _ScanNode("a");
-patterns.add(JoinNode(INNER, desc1, desc2).then(ctx -> {
+JoinNode(INNER, desc1, desc2).then(ctx -> {
   // auto type inference
   JoinNode<ScanNode, ScanNode> left = ctx.get(desc1);
   ScanNode right = ctx.get(desc2);
-  // PlanNode cast to ScanNode
+  // May be unsafe operation: cast PlanNode to ScanNode
   ScanNode right2 = (ScanNode) ctx.get("a");
   assert right == right2;
   return new JoinNode<>(INNER, left.left, new JoinNode(INNER, left.right, right));
-}));
+});
+```
+
+### 5. none / any / option
+声明模式时，可以用 none / any / option 来指定对应的子节点是否存在。 
+- none(): 声明节点为null
+- any(): 声明节点不为null，可以为任意PlanNode
+- option() / option(NodeDesc): 声明节点可能为null
+
+在声明特定类型时，隐式代表了该节点不为空，例如`ScanNode()`，而使用`option(ScanNode())`时，代表节点可能为null，也可能不为null，在不为null时类型为ScanNode。
+
+通过option从上下文中获取PlanNode时，会返回Optional<PlanNode>。
+```java
+NoneNodePattern<PlanNode> noneDesc = none();
+AnyNodePattern<PlanNode> anyDesc = any();
+OptionNodePattern<ScanNode> optionDesc = option(ScanNode());
+JoinNode(noneDesc, JoinNode(anyDesc, optionDesc)).then(ctx -> {
+  // ctx.get(none()) return null
+  Void unused = ctx.get(noneDesc);
+  // ctx.get(any()) return PlanNode
+  PlanNode planNode = ctx.get(anyDesc);
+  // ctx.get(option(ScanNode())) return Optional<ScanNode>
+  Optional<ScanNode> scanNode = ctx.get(optionDesc);
+  // do something else...
+  return ctx.root;
+});
+```
+
+### 6. when
+可以使用when来做自定义匹配条件
+```java
+MultiplyNode(NumNode(), NumNode().when(n -> n.value.intValue() > 100))
 ```
